@@ -62,6 +62,7 @@
  */
 using namespace std;
 using namespace chaos;
+using namespace chaos::common::data;
 using namespace chaos::ui;
 using namespace bson;
 using namespace boost;
@@ -160,7 +161,7 @@ int main (int argc, char* argv[] )
         //------------------------------------------------------------------------------------
         //List all attribute of dataset without use BSON
         vector<string> allOutAttrName;
-        chaos::RangeValueInfo rangeInfo;
+        RangeValueInfo rangeInfo;
         // check the type of attribute
         chaos::DataType::DataSetAttributeIOAttribute direction;
         controller->getDeviceDatasetAttributesName(allOutAttrName, chaos::DataType::Output);
@@ -260,7 +261,7 @@ int main (int argc, char* argv[] )
 	  cout<<"Fetch : "<<idx<<endl; 
 	  controller->fetchCurrentDeviceValue();
 
-            chaos::CDataWrapper *cdata = controller->getCurrentData();
+            CDataWrapper *cdata = controller->getCurrentData();
             if(cdata==NULL){
                 cout<<"No data received at interaction:"<<idx<<endl;
                 usleep(sleep);
