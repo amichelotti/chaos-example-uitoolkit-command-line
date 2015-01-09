@@ -1,8 +1,8 @@
-/*	
+/*
  *	UIToolkitCMDLineExample.cpp
  *	!CHOAS
  *	Created by Bisegni Claudio.
- *	
+ *
  *    	Copyright 2012 INFN, National Institute of Nuclear Physics
  *
  *    	Licensed under the Apache License, Version 2.0 (the "License");
@@ -34,34 +34,35 @@
 
 /*! \page page_example_uiex1 ChaosUIToolkit Example
  \section page_example_uiex1_sec A basic usage for the ChaosUIToolkit package
- 
+
  \subsection page_example_uiex1_sec_sub1 Toolkit usage
  As in the CUToolkit, a developer can add a custom startup param
  \snippet example/UIToolkitCMDLineExample/UIToolkitCMDLineExample.cpp UIToolkit Init
- 
+
  this example show how initialize the UIToolkit, acquire a basic channel, used it and deinit the toolkit.
  The UIToolkit is create around singleton pattern and the channel object are self managed by toolkit. So the first thing
  is to initialize the toolkit internal engine:
- 
+
  \snippet example/UIToolkitCMDLineExample/UIToolkitCMDLineExample.cpp UIToolkit Init
- 
+
  the argc, argv parameter are the common c and cpp main param.
- 
+
  For comunicate with the chaos resurces, as example the metadataserver, a channel is needed. To instantiate a mds channel
  must be used the LLRpcApi api package. To achieve channel creation can be used the singleton instance for calling the method "getNewMetadataServerChannel"
  \snippet example/UIToolkitCMDLineExample/UIToolkitCMDLineExample.cpp UIToolkit ChannelCreation
  The returned pointer to MDSMessageChannel is interally managed, there is no need to deallocate it by and. When a channel is no more neede, the
  deallocation api must be called.
- 
+
  At this point a request can be sent to metadata server and we must wait for the answer. For get all active devices we can use the method "getAllDeviceID"
  that get as param a vector of string, that wil be filled with all device id found
  \snippet example/UIToolkitCMDLineExample/UIToolkitCMDLineExample.cpp Datapack sent
- 
+
  When all operation are finisched the UIToolkit ca be deinitialized, this operation will clean all pendi operation and hannel deallocation
  \snippet example/UIToolkitCMDLineExample/UIToolkitCMDLineExample.cpp UIToolkit Deinit
  */
 using namespace std;
 using namespace chaos;
+using namespace chaos::common::utility;
 using namespace chaos::common::data;
 using namespace chaos::ui;
 using namespace bson;
@@ -103,38 +104,38 @@ int main (int argc, char* argv[] )
         //! [UIToolkit Attribute Init]
         ChaosUIToolkit::getInstance()->getGlobalConfigurationInstance()->addOption(OPT_ITERATION, po::value<int>()->default_value(10), "Set the number of acquiring iteration");
         ChaosUIToolkit::getInstance()->getGlobalConfigurationInstance()->addOption(OPT_SLEEP_TIME, po::value<uint64_t>()->default_value(1000000), "Set the number of microsecond between an acquisition and th eother");
-    
+
         ChaosUIToolkit::getInstance()->getGlobalConfigurationInstance()->addOption(OPT_SET_ATTRIBUTE_ID, po::value<vector<string> > (), "Set the initial attributes of a device");
-      
+
         ChaosUIToolkit::getInstance()->getGlobalConfigurationInstance()->addOption(OPT_GET_ATTRIBUTE_ID, po::value<vector<string> >(), "Trace the specified attributes of a device");
-        
+
         ChaosUIToolkit::getInstance()->getGlobalConfigurationInstance()->addOption(OPT_DEVICE_ID, po::value<string>(), "Specify the device ID");
-        
+
         //! [UIToolkit Attribute Init]
-        
+
         //! [UIToolkit Init]
         ChaosUIToolkit::getInstance()->init(argc, argv);
         if(ChaosUIToolkit::getInstance()->getGlobalConfigurationInstance()->hasOption(OPT_SET_ATTRIBUTE_ID))
             setAttrsOpt=ChaosUIToolkit::getInstance()->getGlobalConfigurationInstance()->getOption<vector<string> >(OPT_SET_ATTRIBUTE_ID);
-        
+
         if(ChaosUIToolkit::getInstance()->getGlobalConfigurationInstance()->hasOption(OPT_GET_ATTRIBUTE_ID))
             getAttrs=ChaosUIToolkit::getInstance()->getGlobalConfigurationInstance()->getOption<vector<string> >(OPT_GET_ATTRIBUTE_ID);
-       
+
         if(ChaosUIToolkit::getInstance()->getGlobalConfigurationInstance()->hasOption(OPT_DEVICE_ID))
             devID=ChaosUIToolkit::getInstance()->getGlobalConfigurationInstance()->getOption<string>(OPT_DEVICE_ID);
         else {
             cerr<< "must specify a device id, for help:"<<argv[0]<<" --help"<<endl;
             return -1;
         }
-        
+
         if(ChaosUIToolkit::getInstance()->getGlobalConfigurationInstance()->hasOption(OPT_ITERATION)){
             iteration = ChaosUIToolkit::getInstance()->getGlobalConfigurationInstance()->getOption<int>(OPT_ITERATION);
         }
-        
+
         if(ChaosUIToolkit::getInstance()->getGlobalConfigurationInstance()->hasOption(OPT_SLEEP_TIME)){
             sleep = ChaosUIToolkit::getInstance()->getGlobalConfigurationInstance()->getOption<uint64_t>(OPT_SLEEP_TIME);
         }
-        
+
         cout << "Query for:"<<devID<<endl;
         //! [UIToolkit ChannelCreation]
         CDeviceNetworkAddress deviceNetworkAddress;
@@ -144,11 +145,11 @@ int main (int argc, char* argv[] )
         if(!controller) {
              std::cout << "Error creating controller for:" << devID << std::endl;
         }
-        
+
         regex expr("(\\w+):(\\w+)");
         vector<string> allInAttrName;
         controller->getDeviceDatasetAttributesName(allInAttrName, chaos::DataType::Input);
-        
+
         for (vector<string>::iterator i=setAttrsOpt.begin(); i!=setAttrsOpt.end(); i++) {
             smatch m;
             if(regex_match(*i,m,expr)){
@@ -156,8 +157,8 @@ int main (int argc, char* argv[] )
                 setAttributes[attribute]=m[2];
             }
         }
-        
-        
+
+
         //------------------------------------------------------------------------------------
         //List all attribute of dataset without use BSON
         vector<string> allOutAttrName;
@@ -168,31 +169,31 @@ int main (int argc, char* argv[] )
         for(vector<string>::iterator i=allOutAttrName.begin();i!=allOutAttrName.end();i++){
             controller->getDeviceAttributeDirection(*i, direction);
             controller->getDeviceAttributeRangeValueInfo(*i, rangeInfo);
-            
+
             cout<<" attributes to track:\""<<*i<<"\""<<endl;
         }
        // intValue1Buff = controller->getBufferForAttribute(key);
-        
-      
-       
+
+
+
         //------------------------------------------------------------------------------------
         /*
          get the state
          */
         err = controller->getState(deviceState);
-        
+
         /*
          initialization of thedevice isntead form MDS
          */
         err = controller->initDevice();
-        
+
         //---------------------------------------------------------------------------------------------------------
         //this step is to use internal UIToolkit buffer logic
         //it initializes the direction and type of attributes
         //it initializes and allocates the timestamp attribute
         controller->setupTracking();
         //
-        
+
         tsBuffer = controller->getPtrBufferForTimestamp();
         if(tsBuffer==NULL){
             cerr<<"cannot allocate memory for timestamp"<<endl;
@@ -206,25 +207,25 @@ int main (int argc, char* argv[] )
 	  controller->addAttributeToTrack(allOutAttrName[idx]);
 	  controller->getDeviceAttributeType(allOutAttrName[idx], t);
 	  // get the buffers
-	  
+
 	  if(getAttrs.empty()){
-	    // no output attributes trace all 
+	    // no output attributes trace all
 	    OutBufs[allOutAttrName[idx]]=tmp;
 	    std::cout << "OUT:"<<allOutAttrName[idx] << "(Tracking)"<<std::endl;
 	  } else {
             if(std::find(getAttrs.begin(),getAttrs.end(),allOutAttrName[idx])!=getAttrs.end()){
               //  PointerBuffer*tmp=controller->getPtrBufferForAttribute(allOutAttrName[idx]);
-	      
+
 	      std::cout << "OUT:"<<allOutAttrName[idx] << "(Tracking)"<<std::endl;
 	      OutBufs[allOutAttrName[idx]]=tmp;
-              
+
             } else {
 	      std::cout << "OUT:"<<allOutAttrName[idx] <<std::endl;
-              
+
             }
 	  }
-	} 
-	
+	}
+
         /*
          set the run schedule delay for the CU
          */
@@ -232,8 +233,8 @@ int main (int argc, char* argv[] )
 
         //------------------------------------------------------------------------------------
         //send command for set attribute of dataset without use BSON
-        
-      
+
+
         for (int idx = 0; idx < allInAttrName.size(); idx++) {
             if(setAttributes.find(allInAttrName[idx])!=setAttributes.end()){
                 string attributeValue=setAttributes[allInAttrName[idx]];
@@ -248,17 +249,17 @@ int main (int argc, char* argv[] )
             }
         }
         //------------------------------------------------------------------------------------
-        
-        
+
+
         /*
          Start the control unit
          */
         err = controller->startDevice();
-        
-	cout<<"MAKING : "<<iteration<<endl; 
+
+	cout<<"MAKING : "<<iteration<<endl;
         for (int idx = 0; idx < iteration; idx++) {
 
-	  cout<<"Fetch : "<<idx<<endl; 
+	  cout<<"Fetch : "<<idx<<endl;
 	  controller->fetchCurrentDeviceValue();
 
             CDataWrapper *cdata = controller->getCurrentData();
@@ -282,18 +283,18 @@ int main (int argc, char* argv[] )
                 string attr= i->first;
                 // if the direction and type are defined, it allocates buffers
                 controller->getDeviceAttributeType(attr , t);
-                
-                
+
+
 		if(i->second){
 		  int32_t bufLen = 0;
-		  
+
 		  boost::shared_ptr<double> doublePtr = i->second->getTypedPtr<double>(bufLen);
 		  if(doublePtr.get()){
                     std::cout << "Buffer received len:" << bufLen << std::endl;
                     for(int32_t idx = 0; idx < bufLen; idx++){
 		      std::cout << doublePtr.get()[idx];
                     }
-                    
+
                     std::cout << std::endl;
 		  }
 		} else if(t==DataType::TYPE_INT32){
@@ -306,23 +307,23 @@ int main (int argc, char* argv[] )
 	cout<<"FINISHED"<<endl;
         controller->stopTracking();
         //---------------------------------------------------------------------------------------------------------
-        
+
         /*
          stopping of the device instead form MDS
          */
         controller->stopDevice();
-        
+
         controller->getState(deviceState);
         std::cout << "state " << deviceState << std::endl;
-        
+
         /*
          deinit of the device instead form MDS
          */
         controller->deinitDevice();
-        
+
         controller->getState(deviceState);
         std::cout << "state " << deviceState << std::endl;
-        
+
         //! [UIToolkit Deinit]
         ChaosUIToolkit::getInstance()->deinit();
         //! [UIToolkit Deinit]
@@ -331,7 +332,7 @@ int main (int argc, char* argv[] )
         std::cerr<< "in:"<<e.errorDomain << std::endl;
         std::cerr<< "cause:"<<e.errorMessage << std::endl;
     } catch (program_options::error &e){
-        cerr << "Unable to parse command line: " << e.what() << endl; 
+        cerr << "Unable to parse command line: " << e.what() << endl;
     } catch (...){
         cerr << "unexpected exception caught.. " << endl;
     }
