@@ -30,7 +30,7 @@
 #include <chaos/common/bson/bson.h>
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/date_time/c_local_time_adjustor.hpp>
-#include <boost/regex.hpp>
+#include <regex>
 
 /*! \page page_example_uiex1 ChaosUIToolkit Example
  \section page_example_uiex1_sec A basic usage for the ChaosUIToolkit package
